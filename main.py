@@ -1,4 +1,4 @@
-import os
+import os, sys
 import glob
 from flask import Flask, request, render_template,   Response, abort, send_file, url_for
 import base64
@@ -72,7 +72,12 @@ def stop_session():
     del processes[token]
     pass
 
+
 if __name__ == '__main__':
+    if len(sys.argv)-1 == 1:
+        PARAMS['CONTENT_MAX_SIDE'] = sys.argv[1]
+    elif len(sys.argv)-1 == 2:
+        PARAMS['STYLE_MAX_SIDE'], PARAMS['CONTENT_MAX_SIDE'] = sys.argv[1:]
     app.run()
     # response = Response(result, mimetype='text/json')
     # response.headers['Content-Disposition'] = "inline; filename=" + filename
