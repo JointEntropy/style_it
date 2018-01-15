@@ -1,0 +1,132 @@
+{% extends "layout.html" %}
+{% block body %}
+    <div class="loading_div" style="display: none; position: absolute;z-index: -1; right: 150px;top: 150px;">
+            <img src="{{ url_for('static', filename='img/loading.gif') }}" width="600px">
+        </div>
+
+    <div class="notes_tab" style="width: 600px">
+        <form id="main_form" method=post enctype=multipart/form-data>
+            <input id='submit_btn' type=submit value="Запуск!">
+            <label for="submit_btn">
+                <h1>Style it!</h1>
+            </label>
+
+            <h2>Параметры </h2>
+            <p>Значимость содержимого:</p>
+            <p> Игнорировать<input id="content_weight" name="content_weight" type="range" max="0.05" min="0" step="any">Важнее </p>
+            <p>Затухание стиля:</p>
+            <p>Слабее <input id="style_decay" name="style_decay" type="range" max="6" min="0.8" value="1" step="any"> Сильнее</p>
+
+            <h2>Изображения </h2>
+            <label for="style_data">
+                <p> Выберите файл со стилем... </p>
+                <img id="style_prev" src="{{url_for('static', filename="img/lion.jpg")}}" alt="your image" style="display: block" alt="your image"   class="img"/>
+            </label>
+            <input type="file" name='style' id="style_data">
+
+            <label for="content_data">
+                <p> Выберите файл для применения стиля... </p>
+                <img id="content_prev" src="{{url_for('static', filename="img/placeholder.png")}}" alt="your image" style="display: block" class="img"/>
+            </label>
+            <input type="file" name='content' id="content_data">
+
+            <label for="stop_btn">
+                <img id="output_image" src="#" class="img output" >
+            </label>
+            <input type="button" id="stop_btn" style="display: none;">
+
+            <script>
+                function readURL(input, target_img) {
+                    if (input.files && input.files[0]) {
+                        var reader = new FileReader();
+                        reader.onload = function (e) {
+
+                            $(target_img).attr('src', e.target.result);
+                        };
+                        reader.readAsDataURL(input.files[0]);
+                    }
+                }
+                $("#style_data").change(function(){
+                    readURL(this, "#style_prev");
+                    $('#style_prev').show(true);
+                    $('#style_data').show(true);
+                });
+                $("#content_data").change(function(){
+                    $('#content_prev').show(true);
+                    $('#content_data').show(true);
+                    readURL(this, "#content_prev");
+                });
+            </script>
+            <script>
+                $("#stop_btn").click(function () {
+                    $.ajax({
+                        type: "get",
+                        url: "/stop",
+                        data: {
+                            "token":style_token
+                        },
+                        cache: false}
+                    );
+                    style_token = undefined;
+                })
+            </script>
+            <script>
+                // Отправляем запрос на начало обработки
+                $("#main_form").on( "submit", function( event ) {
+                    event.preventDefault();
+                    // Собираем все входные параметры.
+                    $(".loading_div").toggle();
+                    var form_data = new FormData(this);
+                    $.ajax({
+                        type: "POST",
+                        url: "/submit",
+                        data: form_data,
+                        processData: false,
+                        contentType: false
+                    }).error(function (xhr, error_mess) {
+                        console.log('Error occurred trying to start style process.');
+                        alert('Неверные входные данные.');
+                        $(".loading_div").toggle();
+                        console.log(xhr.responseText);
+                    }).done(function(data) {
+                        style_token = data['token'];
+                        $(".loading_div").toggle();
+                        console.log('Token received!');
+                        ping()
+                   });
+                });
+
+                // При наличии токена делаем первый запрос
+                function ping()
+                {
+                    $(".loading_div").toggle();
+                    $.ajax({
+                        type: "get",
+                        url: "/ping",
+                        data: {
+                            "token":style_token,
+                            "content_weight": $("#content_weight").val(),
+                             "style_decay": $("#style_decay").val()
+                        },
+                        cache: false
+                    }).error(function (xhr, error_mess) {
+                        $(".loading_div").toggle();
+                        console.log('Ping error.');
+                        console.log(xhr.responseText);
+                    }).done(function(data) {
+                        $(".loading_div").toggle()
+                        console.log('Ping success!');
+                        $(".loading_div").css('top','-50px');
+                        $("#output_image").attr("src", 'data:image/jpg;base64,' + data);
+                        $("#output_image").show(true);
+
+                        ping();
+                    });
+                }
+            </script>
+        </form>
+        <div class="floating_div"><h3>* Для запуска нажмите на заголовок.</h3>
+            <h3>* Для остановки нажмите на изображение.</h3>
+        </div>
+    </div>
+{% endblock %}
