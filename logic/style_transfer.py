@@ -1,11 +1,12 @@
 import os
 import tensorflow as tf
-# Helper functions to deal with image preprocessing
 from .image_utils import load_image, preprocess_image, deprocess_image
 from .squeezenet import SqueezeNet
 from .components import gram_matrix, style_loss, content_loss, tv_loss
 from tqdm import tqdm
-import numpy as np
+from skimage.io import imsave
+
+
 
 def get_session():
     """Create a session that dynamically allocates memory."""
@@ -18,7 +19,7 @@ def get_session():
 
 tf.reset_default_graph()
 sess = get_session()
-SAVE_PATH = 'logic/squeezenet.ckpt'
+SAVE_PATH = '/home/grigory/PycharmProjects/si/logic/squeezenet.ckpt'
 if not os.path.exists(SAVE_PATH):
     raise ValueError("No squeezenet weights found!")
 model = SqueezeNet(save_path=SAVE_PATH, sess=sess)
@@ -43,6 +44,13 @@ PARAMS_COLLECTION = {
 def style(content_image, style_image, image_size, style_size,
             content_layer, content_weight,
             style_layers, style_weights, tv_weight,
+            update_each=10,
+            save_each=10,
+            lr=3.0,
+            default_style_decay=0.1,
+            default_content_weight=0.1,
+            root_dir='',
+            tmp_dir='tmp',
             init_random=False):
     """
     Inputs:
@@ -117,11 +125,13 @@ def style(content_image, style_image, image_size, style_size,
             sess.run(clamp_image_op)
         if t == decay_lr_at:
             sess.run(tf.assign(lr_var, decayed_lr))
-        if t % 10 == 0:
-            print('Iteration {}'.format(t))
+        if t % update_each == 0:
             img = sess.run(img_var)
-            new_params = yield deprocess_image(img[0], rescale=True)
+            img = deprocess_image(img[0], rescale=True)
+            if t % save_each == 0:
+                imsave(os.path.join(root_dir, tmp_dir, 'img_{}.jpg'.format(t)), img)
+            new_params = yield img
             content_weight_val = new_params['content_weight']
             style_weights_decay = new_params['style_decay']
-            print(content_weight_val, style_weights_decay)
+
 

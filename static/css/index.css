@@ -92,8 +92,8 @@ h1
 
 .output
 {
-    height:400px;
-    max-width: 800px;
+    height: 60%;
+    max-width: 100%;
     position: absolute;
     right: 150px;
     top: 250px;

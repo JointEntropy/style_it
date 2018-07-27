@@ -1,33 +1,43 @@
-import os, sys
-import glob
-from flask import Flask, request, render_template,   Response, abort, send_file, url_for
+import sys
+from flask import Flask, request, render_template,   Response
 import base64
-from logic.image_utils import imread
 import imageio
 import io
 from logic.style_transfer import style, PARAMS_COLLECTION
 import json
-import numpy as np
-from PIL import Image
+import argparse
+from pathlib import Path
 
 
 app = Flask(__name__)
 app.secret_key = 'Master Kenobi!'
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024
 
-PARAMS = {
-    'STYLE_MAX_SIDE': 500,
-    'CONTENT_MAX_SIDE': 500
-}
+
+def init():
+    parser = argparse.ArgumentParser()
+    arg = parser.add_argument
+    arg('--default-style-decay', default=0.5, type=float)
+    arg('--default-content-weight', default=5e-2, type=float)
+    arg('--content-max-side', type=int, default='450', help='Maximum width of content image.')
+    arg('--style-max-side', type=int, default='450', help='Maximum width of style image.')
+    arg('--lr', type=float, default=3.0)
+    arg('--tmp-dir', type=str, default='tmp', help='Directory for saving each iteration results.')
+    arg('--save-each', type=int, default='10', help='Save results step.')
+    arg('--update-each', type=int, default='10', help='Update result  step.')
+    arg('--root-dir', type=str, default='')
+    # arg('--model', type=str, default='UNet', choices=['UN', 'UNet11'])
+
+    args = parser.parse_args()
+    # Создаём директорию для сохранения результатов на каждой итерации стилизации
+    root = Path(args.tmp_dir)
+    root.mkdir(exist_ok=True, parents=True)
+    return vars(args)
 
 
 @app.route('/', methods=['GET'])
 def welcome():
     return render_template('welcome.html')
-
-
-processes = {}
-images = {}
 
 
 @app.route('/submit', methods=['POST'])
@@ -38,7 +48,14 @@ def submit():
     params = PARAMS_COLLECTION['comp7'].copy()
     params['content_weight'] = float(request.form.get('content_weight', 5e-2))
 
-    output_gen = style(content_img, style_img,  PARAMS['CONTENT_MAX_SIDE'], PARAMS['STYLE_MAX_SIDE'], **params)
+    output_gen = style(content_img, style_img,
+                       PARAMS['content_max_side'],
+                       PARAMS['style_max_side'],
+                       update_each=PARAMS['update_each'],
+                       save_each=PARAMS['save_each'],
+                       tmp_dir=PARAMS['tmp_dir'],
+                       lr=PARAMS['lr'],
+                       **params)
     # Возвращаем токен
     output_iter = iter(output_gen)
     token = abs(hash(output_iter))
@@ -56,10 +73,8 @@ def update_params():
         'content_weight': float(request.args.get('content_weight', '5e-2')),
     }
     img = processes[token].send(params)
-    #imageio.imsave('output/kek.jpg', img, format='jpg')
     img_b = io.BytesIO()
     imageio.imsave(img_b, img, format='jpg')
-    #response = send_file(img_b, mimetype='image/jpg')
     img_b.seek(0)
     image_64_encode = base64.encodebytes(img_b.read())
     response = Response(image_64_encode, mimetype='image/jpg')
@@ -74,10 +89,7 @@ def stop_session():
 
 
 if __name__ == '__main__':
-    if len(sys.argv)-1 == 1:
-        PARAMS['CONTENT_MAX_SIDE'] = sys.argv[1]
-    elif len(sys.argv)-1 == 2:
-        PARAMS['STYLE_MAX_SIDE'], PARAMS['CONTENT_MAX_SIDE'] = sys.argv[1:]
+    processes = {}
+    images = {}
+    PARAMS = init()
     app.run()
-    # response = Response(result, mimetype='text/json')
-    # response.headers['Content-Disposition'] = "inline; filename=" + filename
