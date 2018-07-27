@@ -13,14 +13,36 @@ Main command line arguments:
     --save-each - step size for saving progress.
     --update-each - step size for updating result.
 
-
+#### Usage example:
+<img src='samples/usage.gif' width=600px>
 
 #### Generated samples:
-![](samples/lena.gif)
-![](samples/lion2.gif)
+<table>
+    <tr>
+        <th>Style</th>
+        <th>Content</th>
+        <th>Progress</th>
+    </tr>
+    <tr>
+        <td> <img src='contents/lena.jpg' width=300px></td>
+        <td> <img src='styles/style2.jpg' width=300px></td>
+        <img src='samples/lena_abstract.gif' width=300px>  </td>
+    </tr>
+    <tr>
+        <td> <img src='contents/lena.jpg' width=300px></td>
+        <td> <img src='styles/style3.jpg' width=300px></td>
+        <img src='samples/lena_abstract.gif' width=300px>  </td>
+    </tr>
+    <tr>
+        <td> <img src='contents/lion.jpg' width=300px></td>
+        <td> <img src='styles/style3.jpg' width=300px></td>
+        <td> <img src='samples/lion.gif' width=300px>  
+        <img src='samples/lion2.gif' width=300px>  </td>
+    </tr>
+</table>
 
-#### Usage example:
-![](samples/usage.gif)
+
+
 
 
 
