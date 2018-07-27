@@ -19,8 +19,8 @@ Main command line arguments:
 #### Generated samples:
 <table>
     <tr>
-        <th>Style</th>
         <th>Content</th>
+        <th>Style</th>
         <th>Progress</th>
     </tr>
     <tr>
