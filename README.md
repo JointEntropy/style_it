@@ -24,6 +24,14 @@ Main command line arguments:
         <th>Progress</th>
     </tr>
     <tr>
+        <td> <img src='contents/lion.jpg' width=300px></td>
+        <td> <img src='styles/style3.jpg' width=300px></td>
+        <td>
+<!--             <img src='samples/lion.gif' width=250px>   -->
+            <img src='samples/lion2.gif' width=250px>  
+        </td>
+    </tr>
+    <tr>
         <td> <img src='contents/lena.jpg' width=300px></td>
         <td> <img src='styles/style2.jpg' width=300px></td>
         <td> <img src='samples/lena_abstract.gif' width=250px>  </td>
@@ -32,11 +40,5 @@ Main command line arguments:
         <td> <img src='contents/lena.jpg' width=300px></td>
         <td> <img src='styles/style3.jpg' width=300px></td>
         <td> <img src='samples/lena.gif' width=250px>  </td>
-    </tr>
-    <tr>
-        <td> <img src='contents/lion.jpg' width=300px></td>
-        <td> <img src='styles/style3.jpg' width=300px></td>
-        <td> <img src='samples/lion.gif' width=250px>  
-        <img src='samples/lion2.gif' width=250px>  </td>
     </tr>
 </table>
